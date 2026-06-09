@@ -34,3 +34,6 @@ def distance_between_latlong(a, b):
     a = np.sin(delta_lat/2)**2 + np.cos(a[0]*np.pi/180) * np.cos(b[0]*np.pi/180) * np.sin(delta_long/2)**2
     c = 2*np.atan2(np.sqrt(a), np.sqrt(1-a))
     return 6371 * c
+
+def construct_a_star():
+    pass
