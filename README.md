@@ -13,4 +13,13 @@ the user's specific situation (for example, if the user has severe bleeding, a l
 ### What is A*?
 A* is a highly-efficient algorithm that determines the lowest weighted path from a start node and a graph node.
 The road network is represented as a series of nodes (junctions and points of interest) with edges (roads, motorways, etc).
-The weight is calculated through the formula $w_{eight} = \frac{travel time}{k - risk}$
+The weight is calculated through the formula $w_{eight} = travel time + travel time \cdot (risk \cdot k)^{2}$.
+Our app changes the value of K based on whether the user is in a severe emergency or not.
+
+### Breakdown of File Structure
+- `data/helpers.py`: contains helper functions for dealing with APIs & latitude/longitude (ex address to/from lat&long, fetching road network nodes, etc)
+- `risk_ai/predict.py`: executes our fine-tuned flood risk prediction AI, accessing APIs for elevation and soil quality in the process
+- `app.py`: holds all UI-related code
+- `graph_algo.py`: takes road network data, generates a graph, contains functions for calculating edge weight, applies networkX's optimized A* implementation
+- `self_reporting.py`: we ended up not having enough time to include this, but this holds functions for communicating with a Supabase database. Our intent was to crowdsource shelter availabilities.
+
