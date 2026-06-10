@@ -13,8 +13,8 @@ class PathSolver:
     
     def find_nearest_shelter(self):
         self.shelter = get_shelters_data(self.lat, self.lon, self.search_radius).values.tolist()[:3]
-        if len(self.shelter) <= 1:
-            self.search_radius *= 2
+        if len(self.shelter) <= 2:
+            self.search_radius += 0.1
             self.find_nearest_shelter()
         sorted(self.shelter, key=lambda s: distance_between_latlong((self.lat, self.lon), (float(s[5]), float(s[4]))))
         return self.shelter
@@ -40,18 +40,20 @@ class PathSolver:
                     speed = 50
 
         time = (edge.length/1000)/speed
-        #risk = label_to_number(
-        #    predict(self.lat, self.lon)
-        #)
+        line = edge.geometry
+        midpoint = line.interpolate(line.length/2)
+        risk = label_to_number(
+            predict(midpoint.y, midpoint.x)
+        )
 
-        return time# + time * risk
+
+        return time + time * risk
 
     def a_star_heuristic(self, a, b):
         return distance_between_latlong(self.backward_mapping[a], self.backward_mapping[b]) / 60
 
         
     def build_network(self):
-        self.search_radius *= 2
         
         self.nodes = get_points(self.lat, self.lon, self.search_radius)
        
@@ -95,7 +97,6 @@ class PathSolver:
             if c_dist < min_dist:
                 min_dist = c_dist
                 closest = id
-        print(closest, min_dist)
         return closest, min_dist
 
     def solve(self, end):

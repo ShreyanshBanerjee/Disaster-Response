@@ -6,7 +6,7 @@ from graph_algo import *
 from risk_ai.predict import *
 
 def main(page: ft.Page):
-    page.title = "AI'm Prepared"
+    page.title = "WAIfinder"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     
@@ -60,20 +60,41 @@ def main(page: ft.Page):
             for i in path
         ]
 
-        print(solver.lat, solver.lon)
-
         polyline = ftmap.PolylineMarker(
             coordinates=coords,
             color=ft.Colors.BLUE,
             border_stroke_width=10,
         )
 
+ 
+        heatmap_grid = []
+        for key, value in cache.items():
+            heatmap_grid.append(
+                ftmap.PolygonMarker(
+                    coordinates=[
+                        ftmap.MapLatitudeLongitude(key[0]-0.005,key[1]-0.005),
+                        ftmap.MapLatitudeLongitude(key[0]-0.005,key[1]+0.005),
+                        ftmap.MapLatitudeLongitude(key[0]+0.005,key[1]+0.005),
+                        ftmap.MapLatitudeLongitude(key[0]+0.005,key[1]-0.005)
+                    ],
+                    color=ft.Colors.with_opacity(
+                        0.1,
+                        {"Safe": ft.Colors.BLUE, "Low": ft.Colors.PURPLE, "Medium": ft.Colors.PINK, "High": ft.Colors.RED}[value],
+                    ),
+                    border_stroke_width=1
+                )
+            )
+
         map_view.layers = [
             ftmap.TileLayer(
                 url_template="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                 user_agent_package_name="com.aimready.app",
             ),
+            ftmap.PolygonLayer(
+                polygons=heatmap_grid
+            ),               
             ftmap.PolylineLayer(polylines=[polyline]),
+
         ]
 
         map_view.visible = True
@@ -81,6 +102,8 @@ def main(page: ft.Page):
         map_view.initial_center = ftmap.MapLatitudeLongitude(solver.lat, solver.lon)
 
         page.update()
+
+        print(cache)
 
 
     page.bgcolor = "lightgrey"
@@ -91,7 +114,7 @@ def main(page: ft.Page):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             controls = [
                 ft.Text(
-                    value = "AI'm Prepared",
+                    value = "WAIfinder",
                     style=ft.TextStyle(
                         size=40,
                         weight=ft.FontWeight.BOLD,

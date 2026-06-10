@@ -63,7 +63,7 @@ risk = {
 
 cache = {}
 def predict(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
-    tup = (round(lat, 4), round(lon, 4))
+    tup = (round(lat, 2), round(lon, 2))
     if tup in cache:
         return cache[tup]
 
