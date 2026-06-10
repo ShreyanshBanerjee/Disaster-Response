@@ -1,4 +1,5 @@
 import flet as ft
+import flet_map as ftmap
 
 from data.helpers import *
 from graph_algo import *
@@ -26,19 +27,48 @@ def main(page: ft.Page):
         for item in nearest:
             shelter_loc.options.append(ft.dropdown.Option(f"{item[0]} - Total Capacity: {int(item[3])}"))
     
-    def gen_path():
-        
-        loadingText.visible=True
-        loadingText.value = "Please wait; Constructing optimal path..."
-        end_pt = [i for i in nearest if f"{i[0]} - Total Capacity: {int(i[3])}" == shelter_loc.value][0]
-        
-        nonlocal solver
+    def gen_path(e):
+        nonlocal solver, path
+
+        end_pt = next(
+            (i for i in nearest
+            if f"{i[0]} - Total Capacity: {int(i[3])}" == shelter_loc.value),
+            None
+        )
+        if not end_pt:
+            return
+
         solver.build_network()
+        path = solver.solve((end_pt[4], end_pt[5]))
 
-        path = solver.solve((end_pt[5], end_pt[4]))
-        print(path)
+        coords = [
+            ftmap.MapLatitudeLongitude(
+                solver.backward_mapping[i][0],
+                solver.backward_mapping[i][1]
+            )
+            for i in path
+        ]
 
-        loadingText.value = "Complete!"
+        print(solver.lat, solver.lon)
+
+        polyline = ftmap.PolylineMarker(
+            coordinates=coords,
+            color=ft.Colors.BLUE,
+            border_stroke_width=10,
+        )
+
+        map_view.layers = [
+            ftmap.TileLayer(
+                url_template="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                user_agent_package_name="com.aimready.app",
+            ),
+            ftmap.PolylineLayer(polylines=[polyline]),
+        ]
+
+        map_view.visible = True
+        map_view.expand = True
+        map_view.initial_center = ftmap.MapLatitudeLongitude(solver.lat, solver.lon)
+
         page.update()
 
 
@@ -100,7 +130,22 @@ def main(page: ft.Page):
                     ],
                 ),
                 gen_path_button := ft.Button(content="Generate Path", on_click=gen_path, visible=False),
-                loadingText := ft.Text(value="", style=ft.TextStyle(size=25))
+                map_view := ftmap.Map(
+                    visible=False,
+                    initial_center=ftmap.MapLatitudeLongitude(0,0),
+                    initial_zoom=15,
+                    layers = [
+                        ftmap.TileLayer(
+                            url_template="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            user_agent_package_name="com.aimready.app",
+                        ),
+                        ftmap.PolylineLayer(
+                            polylines=[
+                                polyline := None
+                            ]
+                        ),
+                    ]
+                ) 
             ]
         )
     )

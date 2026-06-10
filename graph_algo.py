@@ -37,14 +37,14 @@ class PathSolver:
                 case "residential":
                     speed = 30
                 case _:
-                    speed = 50 
+                    speed = 50
 
         time = (edge.length/1000)/speed
-        risk = label_to_number(
-            predict(self.lat, self.lon)
-        )
+        #risk = label_to_number(
+        #    predict(self.lat, self.lon)
+        #)
 
-        return time + time * risk
+        return time# + time * risk
 
     def a_star_heuristic(self, a, b):
         return distance_between_latlong(self.backward_mapping[a], self.backward_mapping[b]) / 60
@@ -70,7 +70,6 @@ class PathSolver:
         self.graph.add_nodes_from(range(len(self.forward_mapping)))
         
         #now, we use the mappings to easily build edges in our graph
-         for edges in self.nodes[1]
         for edge in self.nodes[1].itertuples():
             if edge.reversed:
                 start_node = shapely.get_point(edge.geometry, -1)
@@ -96,6 +95,7 @@ class PathSolver:
             if c_dist < min_dist:
                 min_dist = c_dist
                 closest = id
+        print(closest, min_dist)
         return closest, min_dist
 
     def solve(self, end):
