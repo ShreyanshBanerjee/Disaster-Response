@@ -4,15 +4,19 @@ from huggingface_hub import hf_hub_download
 from riskData import elevation
 from riskData import soil
 
-hfrepo = "robil/siagaai-flood-risk-model"
+# hfrepo = "robil/siagaai-flood-risk-model"
 
-riskModelpath = hf_hub_download(repo_id=hfrepo, filename="flood_risk_model.pkl")
-scalerpath = hf_hub_download(repo_id=hfrepo, filename="feature_scaler.pkl")
-encoderPath = hf_hub_download(repo_id=hfrepo, filename="label_encoder.pkl")
+# riskModelpath = hf_hub_download(repo_id=hfrepo, filename="flood_risk_model.pkl")
+# scalerpath = hf_hub_download(repo_id=hfrepo, filename="feature_scaler.pkl")
+# encoderPath = hf_hub_download(repo_id=hfrepo, filename="label_encoder.pkl")
+
+riskModelPath = "models/flood_risk_model.pkl"
+scalerPath = "models/feature_scaler.pkl"
+encoderPath = "models/label_encoder.pkl"
 
 encoder = joblib.load(encoderPath)
-model = joblib.load(riskModelpath)
-scaler = joblib.load(scalerpath)
+model = joblib.load(riskModelPath)
+scaler = joblib.load(scalerPath)
 
 hydroRankings = {
     "A": 0,
@@ -25,13 +29,13 @@ hydroRankings = {
 }
 
 drainageRankings = {
-    "Excessively drained":          1.0,
+    "Excessively drained": 1.0,
     "Somewhat excessively drained": 0.85,
-    "Well drained":                 0.75,
-    "Moderately well drained":      0.55,
-    "Somewhat poorly drained":      0.35,
-    "Poorly drained":               0.15,
-    "Very poorly drained":          0.05
+    "Well drained": 0.75,
+    "Moderately well drained": 0.55,
+    "Somewhat poorly drained": 0.35,
+    "Poorly drained": 0.15,
+    "Very poorly drained": 0.05
 }
 
 # note this is from wtv language they speak in indonasiaa to normal engilsh
@@ -62,7 +66,7 @@ risk = {
 #     "city_risk": 0.8
 # }
 
-def predictingRisk(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
+def predictingRisk(lat, lon, rainfall_1h=60.0, rainfall_3h=30.0, rainfall_24h=15.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
     elev = float(elevation(lat, lon))
     hydro, drain = soil(lat, lon)
 
