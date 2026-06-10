@@ -1,8 +1,7 @@
 import pandas as pd
 import joblib
 from huggingface_hub import hf_hub_download
-from riskData import elevation
-from riskData import soil
+from fetch_ai_data import elevation, soil
 
 hfrepo = "robil/siagaai-flood-risk-model"
 
