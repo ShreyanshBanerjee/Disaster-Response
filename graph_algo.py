@@ -1,8 +1,10 @@
 from data.helpers import *
+from risk_ai.predict import predict, label_to_number
 import networkx as nx
 import shapely
 import math
 
+ 
 class PathSolver:
     def __init__(self, street, city, state):
         self.lat, self.lon = convert_address_to_latlong(street, city, state)
@@ -17,8 +19,7 @@ class PathSolver:
         sorted(self.shelter, key=lambda s: distance_between_latlong((self.lat, self.lon), (float(s[5]), float(s[4]))))
         return self.shelter
     
-    @staticmethod
-    def calculate_weight_of_edge(edge):
+    def calculate_weight_of_edge(self, edge):
         try:
             speed = int(int(edge.maxspeed)*1.6)
         except:
@@ -39,7 +40,14 @@ class PathSolver:
                     speed = 50 
 
         time = (edge.length/1000)/speed
-        return time
+        risk = label_to_number(
+            predict(self.lat, self.lon)
+        )
+
+        return time + time * risk
+
+    def a_star_heuristic(self, a, b):
+        return distance_between_latlong(self.backward_mapping[a], self.backward_mapping[b]) / 60
 
         
     def build_network(self):
@@ -62,6 +70,7 @@ class PathSolver:
         self.graph.add_nodes_from(range(len(self.forward_mapping)))
         
         #now, we use the mappings to easily build edges in our graph
+         for edges in self.nodes[1]
         for edge in self.nodes[1].itertuples():
             if edge.reversed:
                 start_node = shapely.get_point(edge.geometry, -1)
@@ -71,7 +80,7 @@ class PathSolver:
                 end_node = shapely.get_point(edge.geometry, -1)
             
             if (start_node.y, start_node.x) in self.forward_mapping and (end_node.y, end_node.x) in self.forward_mapping:
-                edge_weight = PathSolver.calculate_weight_of_edge(edge)
+                edge_weight = self.calculate_weight_of_edge(edge)
                 self.graph.add_edge(self.forward_mapping[(start_node.y, start_node.x)], self.forward_mapping[(end_node.y, end_node.x)], weight=edge_weight)
                 if not edge.oneway:
                     self.graph.add_edge(self.forward_mapping[(end_node.y, end_node.x)], self.forward_mapping[(start_node.y,start_node.x)], weight=edge_weight)
@@ -98,5 +107,6 @@ class PathSolver:
         return nx.astar_path(
             self.graph,
             source=a[0],
-            target=b[0]
+            target=b[0],
+            heuristic=self.a_star_heuristic
         )

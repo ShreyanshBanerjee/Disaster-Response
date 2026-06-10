@@ -1,7 +1,7 @@
 import pandas as pd
 import joblib
 from huggingface_hub import hf_hub_download
-from fetch_ai_data import elevation, soil
+from risk_ai.fetch_ai_data import elevation, soil
 
 hfrepo = "robil/siagaai-flood-risk-model"
 
@@ -61,7 +61,7 @@ risk = {
 #     "city_risk": 0.8
 # }
 
-def predictingRisk(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
+def predict(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
     elev = float(elevation(lat, lon))
     hydro, drain = soil(lat, lon)
 
@@ -102,13 +102,15 @@ def predictingRisk(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,
     raw = encoder.inverse_transform([rawInt])[0]  
     label = risk.get(raw, raw)
 
-    print(f"\n Location: ({lat}, {lon})")
-    print(f"Elevation: {elev} m")
-    print(f"Soil group: {hydro} — {drain}")
-    print(f"Drainage score: {drainageScore}")
-    print(f"Rainfall 1h/3h/24h: {rainfall_1h}/{rainfall_3h}/{rainfall_24h} mm")
-    print(f"Flood risk: {label}")
+    return label
 
-    return raw, features
-
-print(predictingRisk(28.538336, -81.3718)) # test
+def label_to_number(risk):
+    match risk:
+        case "Safe":
+            return 0
+        case "Low":
+            return 0.15
+        case "Medium":
+            return 0.4
+        case "High":
+            return 0.6
