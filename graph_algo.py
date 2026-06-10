@@ -11,7 +11,7 @@ class PathSolver:
     
     def find_nearest_shelter(self):
         self.shelter = get_shelters_data(self.lat, self.lon, self.search_radius).values.tolist()[:3]
-        if len(self.shelter) == 0:
+        if len(self.shelter) <= 1:
             self.search_radius *= 2
             self.find_nearest_shelter()
         sorted(self.shelter, key=lambda s: distance_between_latlong((self.lat, self.lon), (float(s[5]), float(s[4]))))
@@ -100,11 +100,3 @@ class PathSolver:
             source=a[0],
             target=b[0]
         )
-
-p = PathSolver("949 Avery Street", "South Windsor", "CT")
-nearest = p.find_nearest_shelter()
-p.build_network()
-
-print([p.backward_mapping[i] for i in p.solve((nearest[0][4], nearest[0][5]))])
-
-#address: 3690 east avenue rochester ny 14618
