@@ -35,7 +35,7 @@ def main(page: ft.Page):
                 ),
                 ft.Divider(),
                 ft.Text(
-                    value="Enter your approximate current address:",
+                    value="Enter your current address:",
                     style=ft.TextStyle(
                         size=20
                     )

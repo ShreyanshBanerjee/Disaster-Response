@@ -7,74 +7,38 @@ import osmnx as ox
 import numpy as np
 from geopy.geocoders import Nominatim
 
-def unzip():
-    zipName = "files\my_archive.zip"
-
-    with zipfile.ZipFile(zipName, 'r') as zip_ref:
-        zip_ref.extractall(path="files")
-        
-    print("extracted")
-
-if __name__ == "__main__":
-    unzip()
-
-def loaddf(filepath="files/shelter_location_data.pkl"):
-    with open(filepath, "rb") as f:
-        return pickle.load(f)
-    
-def getdf(filepath="files/shelter_location_data.pkl"):
-    with open(filepath, "rb") as f:
-        df = pickle.load(f)
-    
-    return df
-
-shelters = []
-
-with open("files/national-shelter-system-facilities-geojson.geojson", "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-for i in data["features"]:
-    properties = i["properties"]
-
-    shelters.append({"name": properties["shelter_name"], "city": properties["city"], "state": properties["state"], "capacity": properties["evacuation_capacity"], "lat": properties["latitude"], "lon": properties["longitude"]
-    })
-
-dfShelters = pd.DataFrame(shelters)
-
-dfShelters.to_csv("files/shelters.csv", index=False)
-
-
-
+#shelter data
 with open("shelter_location_data.pkl", "rb") as f:
-    dfShelters = pickle.load(f)
-print(dfShelters)
+    shelter_data = pickle.load(f)  
 
-# remeber to make a function that returns all the points in a radius of (lat, lon). use pandas to go thru it efficently
+def get_shelters_data(lat, lon, r):
+    if shelter_data is None:
+        load_shelters_data()
 
-def getShelters(lat, lon, r):
-    minLat = lat - r
-    maxLat = lat + r
-    minLon = lon - r
-    maxLon = lon + r
+    minLat = lat - r*0.01
+    maxLat = lat + r*0.01
+    minLon = lon - r*0.01
+    maxLon = lon + r*0.01
 
-    candidates = dfShelters[
-        (dfShelters["lat"] >= minLat) &
-        (dfShelters["lat"] <= maxLat) &
-        (dfShelters["lon"] >= minLon) &
-        (dfShelters["lon"] <= maxLon)
+    candidates = shelter_data[
+        (shelter_data["lat"] >= minLat) &
+        (shelter_data["lat"] <= maxLat) &
+        (shelter_data["lon"] >= minLon) &
+        (shelter_data["lon"] <= maxLon)
     ]
 
-    distance = ((candidates["lat"] - lat) ** 2) + ((candidates["lon"] - lon) ** 2)
+    distance = distance_between_latlong((candidates["lat"], candidates["lon"]), (lat, lon))
 
-    return candidates[distance <= r ** 2]
+    return candidates[distance <= r]
 
+#geolocation math
 nominatim_instance = Nominatim(user_agent="AIm_Prepared_App")
 
-def get_points(lat, long):
+def get_points(lat, long, dist):
     #using the OpenStreetMap API to access a representation of the nearby road network, in terms of graphs and edges
     G = ox.graph_from_point(
-        (43.1548, -77.5486),
-        dist=100,
+        (lat, long),
+        dist=dist*1000,
         network_type="drive"
     )
 
@@ -99,6 +63,3 @@ def distance_between_latlong(a, b):
     a = np.sin(delta_lat/2)**2 + np.cos(a[0]*np.pi/180) * np.cos(b[0]*np.pi/180) * np.sin(delta_long/2)**2
     c = 2*np.atan2(np.sqrt(a), np.sqrt(1-a))
     return 6371 * c
-
-def construct_a_star():
-    pass
