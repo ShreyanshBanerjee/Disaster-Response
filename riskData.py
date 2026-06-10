@@ -1,6 +1,6 @@
 import requests
-from shapely.geometry import Point, LineString
-from shapely.ops import nearest_points
+from datetime import datetime 
+from datetime import timezone
 
 
 def elevation(lat, lon):
@@ -13,36 +13,6 @@ def elevation(lat, lon):
     return elevation
 
 
-
-# usgsURL = "https://hydro.nationalmap.gov/arcgis/rest/services/3DHP_all/MapServer/60/query"
-# hydroParams = {
-#     'geometry': f"{lon},{lat}",
-#     'geometryType': 'esriGeometryPoint',
-#     'inSR': '4326',
-#     'spatialRel': 'esriSpatialRelIntersects',
-#     'distance': '5000',           
-#     'units': 'esriSRUnit_Meter',  
-#     'outFields': 'GNIS_Name',      
-#     'returnGeometry': 'true',
-#     'f': 'json'
-# }
-
-# hydro = requests.get(usgsURL, params=hydroParams).json()
-
-# target = Point(lon, lat)
-# minDistance = float('inf')
-
-# if 'features' in hydro:
-#     for feature in hydro['features']:
-#         if 'geometry' in feature and 'paths' in feature['geometry']:
-#             for path in feature['geometry']['paths']:
-#                 riverLine = LineString(path)
-#                 distance = target.distance(riverLine) * 111
-#                 if distance < minDistance:
-#                     minDistance = distance
-# else:
-#     print("Warning: No rivers or flowlines detected within a 5km radius.")
-
 def soil(lat, lon):
     soilURL = "https://sdmdataaccess.nrcs.usda.gov/Tabular/post.rest"
     query = f"SELECT TOP 1 c.hydgrp, c.drainagecl FROM mapunit mu INNER JOIN component c ON mu.mukey = c.mukey WHERE mu.mukey IN (SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('POINT({lon} {lat})'))"
@@ -50,7 +20,47 @@ def soil(lat, lon):
 
     return soil['Table'][0][0], soil['Table'][0][1]
 
+def weather(lat, lon):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": "precipitation,relative_humidity_2m,temperature_2m,wind_speed_10m",
+        "past_days": 1,
+        "forecast_days": 1,
+        "timezone": "auto"
+    }
 
-# print(f"Elevation: {elevation} meters")
-# # print(f"Minimum distance to river: {minDistance} km")
-# print(f"Soil Hydrologic Group: {soil_data['Table'][0][0]} | Drainage Class: {soil_data['Table'][0][1]}")
+    data = requests.get(url, params=params, timeout=10).json()
+
+    precip = data["hourly"]["precipitation"]
+    humidity = data["hourly"]["relative_humidity_2m"]
+    temp = data["hourly"]["temperature_2m"]
+    wind = data["hourly"]["wind_speed_10m"]
+
+    i = 24
+
+    rain3 = 0
+    for j in range(-2, 1):
+        rain3 += precip[i + j]
+    
+    rain24 = 0
+    for j in range(-23, 1):
+        rain24 += precip[i + j]
+
+    month = datetime.now().month
+    if month >= 6 and month <= 9:
+        isRainySzn = 1
+    else:
+        isRainySzn = 0
+
+    return {
+        "rainfall_1h": precip[i],
+        "rainfall_3h": rain3,
+        "rainfall_24h": rain24,
+        "humidity": humidity[i],
+        "temperature": temp[i],
+        "wind_speed": wind[i],
+        "month": month,
+        "is_rainy_szn": isRainySzn
+    }

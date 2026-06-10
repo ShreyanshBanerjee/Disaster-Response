@@ -3,6 +3,7 @@ import joblib
 from huggingface_hub import hf_hub_download
 from riskData import elevation
 from riskData import soil
+from riskData import weather
 
 # hfrepo = "robil/siagaai-flood-risk-model"
 
@@ -66,15 +67,21 @@ risk = {
 #     "city_risk": 0.8
 # }
 
-def predictingRisk(lat, lon, rainfall_1h=60.0, rainfall_3h=30.0, rainfall_24h=15.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
+def predictingRisk(lat, lon, cityRisk=0.5):
     elev = float(elevation(lat, lon))
     hydro, drain = soil(lat, lon)
+    wx = weather(lat, lon)
 
     soilScore = hydroRankings.get(hydro, 1)
     drainageScore = drainageRankings.get(drain, 0.5)
 
-    rainIntensity = rainfall_1h
-    rainPersistence = rainfall_3h / 3
+    rainIntensity = wx["rainfall_1h"]
+    temp = wx["temperature"]
+    wind = wx["wind_speed"]
+    humidity = wx["humidity"]
+    month = wx["month"]
+    isRainySzn = wx["is_rainy_szn"]
+    rainPersistence = wx["rainfall_3h"] / 3
     if (humidity / 100.0 <= 1.0):
         saturationIndex = humidity / 100.0
     elif (humidity / 100.0 > 1.0):
@@ -82,9 +89,9 @@ def predictingRisk(lat, lon, rainfall_1h=60.0, rainfall_3h=30.0, rainfall_24h=15
     heatHumidity = temp * (humidity / 100.0)
 
     features = {
-        "rainfall_1h": rainfall_1h,
-        "rainfall_3h": rainfall_3h,
-        "rainfall_24h": rainfall_24h,
+        "rainfall_1h": wx["rainfall_1h"],
+        "rainfall_3h": wx["rainfall_3h"],
+        "rainfall_24h": wx["rainfall_24h"],
         "humidity": humidity,
         "temperature": temp,
         "wind_speed": wind,
@@ -107,13 +114,4 @@ def predictingRisk(lat, lon, rainfall_1h=60.0, rainfall_3h=30.0, rainfall_24h=15
     raw = encoder.inverse_transform([rawInt])[0]  
     label = risk.get(raw, raw)
 
-    print(f"\n Location: ({lat}, {lon})")
-    print(f"Elevation: {elev} m")
-    print(f"Soil group: {hydro} — {drain}")
-    print(f"Drainage score: {drainageScore}")
-    print(f"Rainfall 1h/3h/24h: {rainfall_1h}/{rainfall_3h}/{rainfall_24h} mm")
-    print(f"Flood risk: {label}")
-
     return raw, features
-
-print(predictingRisk(28.538336, -81.3718)) # test
