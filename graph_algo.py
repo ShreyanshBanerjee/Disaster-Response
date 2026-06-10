@@ -8,7 +8,7 @@ import math
 class PathSolver:
     def __init__(self, street, city, state):
         self.lat, self.lon = convert_address_to_latlong(street, city, state)
-
+        self.k = 10
         self.search_radius = 0.5
     
     def find_nearest_shelter(self):
@@ -47,7 +47,7 @@ class PathSolver:
         )
 
 
-        return time + time * risk
+        return time + time*(risk*self.k)**2
 
     def a_star_heuristic(self, a, b):
         return distance_between_latlong(self.backward_mapping[a], self.backward_mapping[b]) / 60

@@ -37,6 +37,8 @@ def main(page: ft.Page):
         }
         risk_level_text.value = f"You are currently in a {advice_mapping[c_risk]}."
         risk_level_text.visible=True
+
+        urgency_select.visible=True
     
     def gen_path(e):
         nonlocal solver, path
@@ -48,6 +50,11 @@ def main(page: ft.Page):
         )
         if not end_pt:
             return
+        
+        if urgency_select.value == "False`":
+            solver.k = 10
+        else:
+            solver.k = 2
 
         solver.build_network()
         path = solver.solve((end_pt[4], end_pt[5]))
@@ -103,9 +110,6 @@ def main(page: ft.Page):
 
         page.update()
 
-        print(cache)
-
-
     page.bgcolor = "lightgrey"
     page.add(
         ft.Column(
@@ -122,7 +126,7 @@ def main(page: ft.Page):
                     ),
                 ),
                 ft.Text(
-                    value="Build a plan for rapid natural disaster response in minutes.",
+                    value="Find the safest route to shelter in evolving natural disaster conditions.",
                     style=ft.TextStyle(
                         size=20,
                     )
@@ -154,7 +158,7 @@ def main(page: ft.Page):
                     alignment=ft.MainAxisAlignment.CENTER,
                     controls = [
                         select_shelter_text := ft.Text(
-                            value="Select a shelter: ",
+                            value="Travel to a shelter: ",
                             visible=False,
                             style=ft.TextStyle(
                                 size=25
@@ -167,7 +171,16 @@ def main(page: ft.Page):
                             options=[
                                 ft.dropdown.Option("---")
                             ],
-                        )
+                        ),
+                        urgency_select := ft.Dropdown(
+                            label="Urgency?",
+                            visible=False,
+                            text_align=ft.TextAlign.CENTER,
+                            options=[
+                                ft.dropdown.Option("True"),
+                                ft.dropdown.Option("False")
+                            ],
+                        ), 
                     ],
                 ),
                 gen_path_button := ft.Button(content="Generate Path", on_click=gen_path, visible=False),
