@@ -3,8 +3,8 @@ from datetime import datetime
 
 now = datetime.now()
 
-url = "{data base url}"
-key = "{api token here}"
+url = "{url here}"
+key = "{api token}"
 
 supabase = create_client(url, key)
 
@@ -18,9 +18,9 @@ def report_occupancy(loc, status):
 
 
 def get_occupancy(loc):
-    response = supabase.table("events") \
-        .select("*") \
-        .eq("label", loc) \
+    response = supabase.table("events")
+        .select("*")
+        .eq("label", loc)
         .execute()
 
     return response.data

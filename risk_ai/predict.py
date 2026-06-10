@@ -61,7 +61,12 @@ risk = {
 #     "city_risk": 0.8
 # }
 
+cache = {}
 def predict(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,humidity=70.0, temp=20.0, wind=10.0, month=6, isRainySzn=0, cityRisk=0.5):
+    tup = (round(lat, 4), round(lon, 4))
+    if tup in cache:
+        return cache[tup]
+
     elev = float(elevation(lat, lon))
     hydro, drain = soil(lat, lon)
 
@@ -102,6 +107,7 @@ def predict(lat, lon, rainfall_1h=0.0, rainfall_3h=0.0, rainfall_24h=0.0,humidit
     raw = encoder.inverse_transform([rawInt])[0]  
     label = risk.get(raw, raw)
 
+    cache[tup] = label
     return label
 
 def label_to_number(risk):

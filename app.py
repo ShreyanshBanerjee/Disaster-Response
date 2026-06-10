@@ -3,6 +3,7 @@ import flet_map as ftmap
 
 from data.helpers import *
 from graph_algo import *
+from risk_ai.predict import *
 
 def main(page: ft.Page):
     page.title = "AI'm Prepared"
@@ -26,6 +27,16 @@ def main(page: ft.Page):
         gen_path_button.visible = True
         for item in nearest:
             shelter_loc.options.append(ft.dropdown.Option(f"{item[0]} - Total Capacity: {int(item[3])}"))
+
+        c_risk = predict(solver.lat, solver.lon)
+        advice_mapping = {
+            "Safe": "SAFE zone",
+            "Low": "LOW-RISK zone. Remain cautious, as situations can escalate any second",
+            "Medium": "MEDIUM-RISK zone. We highly recommend traveling to a nearby shelter",
+            "High": "HIGH-RISK zone. Leave your current area immediately!"
+        }
+        risk_level_text.value = f"You are currently in a {advice_mapping[c_risk]}."
+        risk_level_text.visible=True
     
     def gen_path(e):
         nonlocal solver, path
@@ -109,6 +120,13 @@ def main(page: ft.Page):
                         ft.Button(content="Next", on_click=update_address)
                     ]
                 ),
+                risk_level_text := ft.Text(
+                    value="",
+                    visible = False,
+                    style=ft.TextStyle(
+                        size=25
+                    )
+                ),
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     controls = [
@@ -145,7 +163,7 @@ def main(page: ft.Page):
                             ]
                         ),
                     ]
-                ) 
+                ),
             ]
         )
     )
