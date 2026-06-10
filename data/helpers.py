@@ -8,7 +8,7 @@ import numpy as np
 from geopy.geocoders import Nominatim
 
 #shelter data
-with open("shelter_location_data.pkl", "rb") as f:
+with open("data/shelter_locations.pkl", "rb") as f:
     shelter_data = pickle.load(f)  
 
 def get_shelters_data(lat, lon, r):

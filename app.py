@@ -1,6 +1,6 @@
 import flet as ft
 
-from data import *
+from data.helpers import *
 from graph_algo import *
 
 def main(page: ft.Page):

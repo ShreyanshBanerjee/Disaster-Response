@@ -1,4 +1,4 @@
-from data import *
+from data.helpers import *
 import networkx as nx
 import shapely
 import math
