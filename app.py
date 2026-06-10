@@ -51,7 +51,7 @@ def main(page: ft.Page):
         if not end_pt:
             return
         
-        if urgency_select.value == "False`":
+        if urgency_select.value == "True":
             solver.k = 10
         else:
             solver.k = 2
