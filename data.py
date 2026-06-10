@@ -34,11 +34,11 @@ def get_shelters_data(lat, lon, r):
 #geolocation math
 nominatim_instance = Nominatim(user_agent="AIm_Prepared_App")
 
-def get_points(lat, long):
+def get_points(lat, long, dist):
     #using the OpenStreetMap API to access a representation of the nearby road network, in terms of graphs and edges
     G = ox.graph_from_point(
-        (43.1548, -77.5486),
-        dist=100,
+        (lat, long),
+        dist=dist*1000,
         network_type="drive"
     )
 
